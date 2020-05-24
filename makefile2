@@ -1,0 +1,79 @@
+#--------------------------------
+# finddupe makefile for Mingw
+# Needs mingw-w64 for Unicode https://sourceforge.net/p/mingw-w64/wiki2/Unicode%20apps/
+#--------------------------------
+
+# comment out to disable
+Unicode=1
+#Debug=1
+
+CC=gcc
+CFLAGS=-O3 -Wall
+LINKER=gcc
+LDFLAGS=
+
+ifdef Unicode
+  CFLAGS += -D_UNICODE -DUNICODE
+  LDFLAGS += -municode
+endif
+
+ifdef Debug
+  CFLAGS += -g
+  LDFLAGS += -g
+endif
+
+# needs a different DevKit for 64-bit build
+#compile to finndupe.exe (x86 executable only)
+#all: finddupe.exe #finddupe64.exe #old code (commented)
+
+#compile finddupe and myglob as x86 and x64 executable, and clean ".o"-files, then.
+#all: finddupe.exe finddupe64.exe myglob.exe myglob64.exe clean_obj
+
+#Just leave two .exe
+all: finddupe.exe finddupe64.exe clean_obj
+
+OBJ =
+
+OBJECTS_FINDDUPE = $(OBJ)finddupe.o \
+                $(OBJ)myglob.o \
+
+OBJECTS_FINDDUPE64 = $(OBJECTS_FINDDUPE:.o=.o64)
+
+%.o : %.c
+#old code (commented) - compile win32-executable (x86), by default, without -m32 flag
+#	$(CC) -c $(CFLAGS) -o $@ $<
+
+#add -m32 flag for win32(x86)-program
+	$(CC) -c $(CFLAGS) -m32 -o $@ $<
+
+%.o64 : %.c
+	$(CC) -c $(CFLAGS) -m64 -o $@ $<
+
+finddupe.exe: $(OBJECTS_FINDDUPE)
+#old code (commented) - compile win32-executable (x86), by default, without -m32 flag
+#	$(LINKER) $(LDFLAGS) -o $@ $(OBJECTS_FINDDUPE)
+
+#add -m32 flag for win32(x86)-program
+	$(LINKER) $(LDFLAGS) -m32 -o $@ $(OBJECTS_FINDDUPE)
+
+finddupe64.exe: $(OBJECTS_FINDDUPE64)
+	$(LINKER) $(LDFLAGS) -m64 -o $@ $(OBJECTS_FINDDUPE64)
+
+# for testing only
+myglob.exe: myglob.c
+#old code (commented)
+#	$(CC) $(CFLAGS) $(LDFLAGS) -DDEBUGGING -o $@ $<
+
+#add -m32 flag for win32(x86)-program
+	$(CC) $(CFLAGS) $(LDFLAGS) -DDEBUGGING -m32 -o $@ $<
+
+myglob64.exe: myglob.c
+	$(CC) $(CFLAGS) $(LDFLAGS) -DDEBUGGING -o $@ $<
+
+clean_obj:
+#remove object-files (".o"-files) only, and leave ".exe"-files.
+	rm *.o *.o64
+
+clean:
+#remove object-files (".o"-files), and ".exe"-files.
+	rm *.o *.o64 *.exe
